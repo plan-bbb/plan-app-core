@@ -34,7 +34,7 @@ jobs:
         env:
           GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=no -o ProxyCommand="ssh -o StrictHostKeyChecking=no ${{ vars.PROXY_USERNAME }}@${{ vars.PROXY_DOMAIN }} -p ${{ vars.PROXY_PORT }} -W %h:%p"
         run: |
-          git clone ${{ vars.GITLAB_REPOSITORY }} release
+          git clone --single-branch --depth 1 -b main ${{ vars.GITLAB_REPOSITORY }} release
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -57,6 +57,7 @@ jobs:
           workspaces: './release/src-tauri -> target'
 
       - name: Install frontend dependencies
+        working-directory: release
         run: pnpm install
 
       - name: Tauri build

@@ -1,0 +1,67 @@
+name: 'publish'
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            platform: 'macos'
+            arch: arm64
+          - os: 'windows-latest'
+            args: ''
+            platform: 'windows'
+            arch: x64
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Setup ssh key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.GITLAB_TOKEN }}
+
+      - name: Checkout Repository
+        env:
+          GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=no -o ProxyCommand="ssh -o StrictHostKeyChecking=no ${{ vars.PROXY_USERNAME }}@${{ vars.PROXY_DOMAIN }} -p ${{ vars.PROXY_PORT }} -W %h:%p"
+        run: |
+          git clone ${{ vars.GITLAB_REPOSITORY }} release
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './release/src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Tauri build
+        working-directory: release
+        run: npm run tauri -- build ${{ matrix.args }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}

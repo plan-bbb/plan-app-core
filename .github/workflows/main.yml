@@ -66,3 +66,7 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      - name: Install Rop
+        run: npm -g install @sevenvip666/rop@latest
+      - name: Upload
+        run: rop upload ${{matrix.platform}} ${{matrix.arch}} --accessKey ${{ secrets.ROP_ACCESS_KEY }}

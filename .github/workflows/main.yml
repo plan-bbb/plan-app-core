@@ -15,7 +15,7 @@ jobs:
           - os: 'macos-latest'
             args: '--target x86_64-apple-darwin'
             platform: 'macos'
-            arch: arm64
+            arch: x64
           - os: 'windows-latest'
             args: ''
             platform: 'windows'
@@ -70,4 +70,4 @@ jobs:
         run: npm -g install @sevenvip666/rop@latest
       - name: Upload
         working-directory: release
-        run: rop upload ${{matrix.platform}} ${{matrix.arch}} --accessKey usUt7uI62gW4sNKk4xbwo6-jiBotRmes
+        run: rop upload ${{matrix.platform}} ${{matrix.arch}} --accessKey ${{ secrets.ROP_ACCESS_KEY }}

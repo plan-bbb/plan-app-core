@@ -69,4 +69,5 @@ jobs:
       - name: Install Rop
         run: npm -g install @sevenvip666/rop@latest
       - name: Upload
+        working-directory: release
         run: rop upload ${{matrix.platform}} ${{matrix.arch}} --accessKey ${{ secrets.ROP_ACCESS_KEY }}
